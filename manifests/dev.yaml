@@ -1,0 +1,74 @@
+apiVersion: agents.x-k8s.io/v1beta1
+kind: Sandbox
+metadata:
+  name: go-dev
+  namespace: default
+  annotations:
+    poc.agent-sandbox.local/spec-hash: DEV_SPEC_HASH
+spec:
+  service: false
+  podTemplate:
+    metadata:
+      labels:
+        app.kubernetes.io/name: go-dev
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: ide
+        image: DEV_IMAGE
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: go-dev-auth
+              key: password
+        ports:
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 2
+          periodSeconds: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: '2'
+            memory: 4Gi
+        volumeMounts:
+        - name: home
+          mountPath: /home/dev
+      volumes:
+      - name: home
+        persistentVolumeClaim:
+          claimName: go-dev-home
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-dev-ide
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: go-dev
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http

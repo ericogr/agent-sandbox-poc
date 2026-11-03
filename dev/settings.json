@@ -1,0 +1,13 @@
+{
+  "go.alternateTools": {
+    "gopls": "/usr/local/bin/gopls",
+    "dlv": "/usr/local/bin/dlv"
+  },
+  "go.toolsManagement.autoUpdate": false,
+  "go.toolsManagement.checkForUpdates": "off",
+  "go.lintOnSave": "off",
+  "go.formatTool": "default",
+  "telemetry.telemetryLevel": "off",
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false
+}
